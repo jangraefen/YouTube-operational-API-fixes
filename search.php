@@ -183,6 +183,10 @@ function getAPI($id, $order, $continuationToken)
             $path = 'richItemRenderer/content/videoRenderer';
         } elseif (isset($_GET['q'])) {
             $path = $isShort ? 'reelItemRenderer' : 'videoRenderer';
+            // Skip `People also watched`.
+            if(!$isShort && !array_key_exists($path, $item)) {
+                continue;
+            }
         } else {
             $path = 'gridVideoRenderer';
         }
@@ -242,7 +246,7 @@ function getAPI($id, $order, $continuationToken)
         $nextContinuationToken = $nextContinuationToken['continuationItemRenderer']['continuationEndpoint']['continuationCommand']['token'];
     }
     if (isset($_GET['q'])) {
-        $nextContinuationToken = $continuationTokenProvided ? $json['continuationContents']['sectionListContinuation'] : $json['contents']['twoColumnSearchResultsRenderer']['primaryContents']['sectionListRenderer']['contents'][1]['continuationItemRenderer']['continuationEndpoint']['continuationCommand']['token'];
+        $nextContinuationToken = ($continuationTokenProvided ? $json['onResponseReceivedCommands'][0]['appendContinuationItemsAction']['continuationItems'] : $json['contents']['twoColumnSearchResultsRenderer']['primaryContents']['sectionListRenderer']['contents'])[1]['continuationItemRenderer']['continuationEndpoint']['continuationCommand']['token'];
     }
     $nextContinuationToken = urldecode($nextContinuationToken);
     $answer = [

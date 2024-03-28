@@ -10,6 +10,10 @@
         ['part=music&id=ntG3GQdY_Ok', 'items/0/music/available', true],
         ['part=isOriginal&id=FliCdfxdtTI', 'items/0/isOriginal', false],
         ['part=isOriginal&id=iqKdEhx-dD4', 'items/0/isOriginal', true],
+        ['part=isPremium&id=FliCdfxdtTI', 'items/0/isPremium', false],
+        ['part=isPremium&id=dNJMI92NZJ0', 'items/0/isPremium', true],
+        ['part=explicitLyrics&id=Ehoe35hTbuY', 'items/0/explicitLyrics', false],
+        ['part=explicitLyrics&id=PvM79DJ2PmM', 'items/0/explicitLyrics', true],
     ];
 
     include_once 'common.php';
@@ -34,6 +38,7 @@
         'snippet',
         'clip',
         'activity',
+        'explicitLyrics',
     ];
 
     // really necessary ?
@@ -443,6 +448,11 @@
                 'channelId' => $channelId
             ];
             $item['activity'] = $activity;
+        }
+
+        if ($options['explicitLyrics']) {
+            $json = getJSONFromHTML("https://www.youtube.com/watch?v=$id");
+            $item['explicitLyrics'] = getValue($json, 'contents/twoColumnWatchNextResults/results/results/contents/1/videoSecondaryInfoRenderer/metadataRowContainer/metadataRowContainerRenderer/rows/0/metadataRowRenderer/contents/0/simpleText') === 'Explicit lyrics';
         }
 
         return $item;
