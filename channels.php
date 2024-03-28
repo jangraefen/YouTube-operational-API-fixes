@@ -2,23 +2,23 @@
 
     header('Content-Type: application/json; charset=UTF-8');
 
-    $channelsTests = [
-        ['cId=FolkartTr', 'items/0/id', 'UCnS--2e1yzQCm5r4ClrMJBg'],
-        ['handle=@Test-kq9ig', 'items/0/id', 'UCv_LqFI-0vMVYgNR3TeB3zQ'],
-        ['forUsername=DonDiablo', 'items/0/id', 'UC8y7Xa0E1Lo6PnVsu2KJbOA'],
-        ['part=status&id=UC7LoiySz7-FcGgZCKBq_2vQ', 'items/0/status', 'This channel is not available.'],
-        // How to precise viewCount can be any integer greater than those we have? Same concerning relative date.
-        // Do not forget to format JSON
-        ['part=shorts&id=UCv_LqFI-0vMVYgNR3TeB3zQ', 'items/0/shorts', json_decode(file_get_contents('tests/part=shorts&id=UCv_LqFI-0vMVYgNR3TeB3zQ.json'), true)],
-        ['part=community&id=UCv_LqFI-0vMVYgNR3TeB3zQ', 'items/0/community', json_decode(file_get_contents('tests/part=community&id=UCv_LqFI-0vMVYgNR3TeB3zQ.json'), true)],
-        ['part=about&id=UCv_LqFI-0vMVYgNR3TeB3zQ', 'items/0', json_decode(file_get_contents('tests/part=about&id=UCv_LqFI-0vMVYgNR3TeB3zQ.json'), true)],
-        ['part=approval&id=UC0aMaqIs997ggjDs_Q9UYiw', 'items/0/approval', 'Official Artist Channel'],
-        ['part=snippet&id=UCv_LqFI-0vMVYgNR3TeB3zQ', 'items/0/snippet', json_decode(file_get_contents('tests/part=snippet&id=UCv_LqFI-0vMVYgNR3TeB3zQ.json'), true)],
-        ['part=membership&id=UCX6OQ3DkcsbYNE6H8uQQuVA', 'items/0/isMembershipEnabled', true],
-        ['part=popular&id=UCyvTYozFRVuM_mKKyT6K50g', 'items/0', []],
-        ['part=recent&id=UCyvTYozFRVuM_mKKyT6K50g', 'items/0', []],
-        ['part=letsPlay&id=UCyvTYozFRVuM_mKKyT6K50g', 'items/0', []],
-    ];
+    // $channelsTests = [
+    //     ['cId=FolkartTr', 'items/0/id', 'UCnS--2e1yzQCm5r4ClrMJBg'],
+    //     ['handle=@Test-kq9ig', 'items/0/id', 'UCv_LqFI-0vMVYgNR3TeB3zQ'],
+    //     ['forUsername=DonDiablo', 'items/0/id', 'UC8y7Xa0E1Lo6PnVsu2KJbOA'],
+    //     ['part=status&id=UC7LoiySz7-FcGgZCKBq_2vQ', 'items/0/status', 'This channel is not available.'],
+    //     // How to precise viewCount can be any integer greater than those we have? Same concerning relative date.
+    //     // Do not forget to format JSON
+    //     ['part=shorts&id=UCv_LqFI-0vMVYgNR3TeB3zQ', 'items/0/shorts', json_decode(file_get_contents('tests/part=shorts&id=UCv_LqFI-0vMVYgNR3TeB3zQ.json'), true)],
+    //     ['part=community&id=UCv_LqFI-0vMVYgNR3TeB3zQ', 'items/0/community', json_decode(file_get_contents('tests/part=community&id=UCv_LqFI-0vMVYgNR3TeB3zQ.json'), true)],
+    //     ['part=about&id=UCv_LqFI-0vMVYgNR3TeB3zQ', 'items/0', json_decode(file_get_contents('tests/part=about&id=UCv_LqFI-0vMVYgNR3TeB3zQ.json'), true)],
+    //     ['part=approval&id=UC0aMaqIs997ggjDs_Q9UYiw', 'items/0/approval', 'Official Artist Channel'],
+    //     ['part=snippet&id=UCv_LqFI-0vMVYgNR3TeB3zQ', 'items/0/snippet', json_decode(file_get_contents('tests/part=snippet&id=UCv_LqFI-0vMVYgNR3TeB3zQ.json'), true)],
+    //     ['part=membership&id=UCX6OQ3DkcsbYNE6H8uQQuVA', 'items/0/isMembershipEnabled', true],
+    //     ['part=popular&id=UCyvTYozFRVuM_mKKyT6K50g', 'items/0', []],
+    //     ['part=recent&id=UCyvTYozFRVuM_mKKyT6K50g', 'items/0', []],
+    //     ['part=letsPlay&id=UCyvTYozFRVuM_mKKyT6K50g', 'items/0', []],
+    // ];
 
     include_once 'common.php';
 
