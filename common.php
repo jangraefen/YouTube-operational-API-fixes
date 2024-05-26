@@ -193,7 +193,7 @@
 
     function isContinuationTokenAndVisitorData($continuationTokenAndVisitorData)
     {
-        return checkRegex('[A-Za-z0-9=]+,[A-Za-z0-9=\-_]+', $continuationTokenAndVisitorData);
+        return checkRegex('[A-Za-z0-9=_]+,[A-Za-z0-9=\-_]*', $continuationTokenAndVisitorData);
     }
 
     function isPlaylistId($playlistId)
@@ -201,6 +201,7 @@
         return checkRegex('[a-zA-Z0-9-_]+', $playlistId);
     }
 
+    // what's minimal length ?
     function isCId($cId)
     {
         return checkRegex('[a-zA-Z0-9]+', $cId);
@@ -394,6 +395,9 @@
         $post = [
             'id' => $id,
             'channelId' => $channelId,
+            'channelName' => $common['authorText']['runs'][0]['text'],
+            'channelHandle' => substr($common['authorEndpoint']['browseEndpoint']['canonicalBaseUrl'], 1),
+            'channelThumbnails' => $common['authorThumbnail']['thumbnails'],
             'date' => $date,
             'contentText' => $contentText,
             'likes' => $likes,
@@ -448,6 +452,10 @@
                    $timeComponents['minute'] * 60 +
                    $timeComponents['second'];
         return ($isNegative ? -1 : 1) * $timeInt;
+    }
+
+    function getFirstNodeContainingPath($nodes, $path) {
+        return array_values(array_filter($nodes, fn($node) => doesPathExist($node, $path)))[0];
     }
 
     function getTabByName($result, $tabName) {
@@ -547,7 +555,7 @@
 
     function verifyMultipleIdsConfiguration($realIds, $field) {
         if (count($realIds) >= 2 && !MULTIPLE_IDS_ENABLED) {
-            dieWithJsonMessage("Multiple ${field}s are disabled on this instance");
+            dieWithJsonMessage("Multiple {$field}s are disabled on this instance");
         }
     }
 
@@ -560,6 +568,13 @@
     function verifyMultipleIds($realIds, $field = 'id') {
         verifyMultipleIdsConfiguration($realIds, $field);
         verifyTooManyIds($realIds, $field);
+    }
+
+    function getMultipleIds($field) {
+        $realIdsString = $_GET[$field];
+        $realIds = explode(',', $realIdsString);
+        verifyMultipleIds($realIds);
+        return $realIds;
     }
 
 ?>
