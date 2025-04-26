@@ -1,6 +1,7 @@
 <?php
 
     include_once 'constants.php';
+    include_once 'configuration.php';
 
     ini_set('display_errors', 0);
 
@@ -10,18 +11,19 @@
         {
             if($_GET['instanceKey'] !== RESTRICT_USAGE_TO_KEY)
             {
-                die("The provided `instanceKey` isn't correct!");
+                die("The provided <code>instanceKey</code> isn't correct!");
             }
         }
         else
         {
-            die('This instance requires that you provide the appropriate `instanceKey` parameter!');
+            die('This instance requires that you provide the appropriate <code>instanceKey</code> parameter!');
         }
     }
 
     function getContextFromOpts($opts)
     {
         if (GOOGLE_ABUSE_EXEMPTION !== '') {
+            // Can maybe leverage an approach like [issues/321](https://github.com/Benjamin-Loison/YouTube-operational-API/issues/321).
             $cookieToAdd = 'GOOGLE_ABUSE_EXEMPTION=' . GOOGLE_ABUSE_EXEMPTION;
             // Can't we simplify the following code?
             if (array_key_exists('http', $opts)) {
@@ -57,7 +59,7 @@
     function getHeadersFromOpts($url, $opts)
     {
         $context = getContextFromOpts($opts);
-        $headers = get_headers($url, false, $context);
+        $headers = get_headers($url, true, $context);
         return $headers;
     }
 
@@ -87,7 +89,8 @@
     {
         $opts = [
             'http' => [
-                'ignore_errors' => true
+                'ignore_errors' => true,
+                'follow_location' => false,
             ]
         ];
         $http_response_header = getHeadersFromOpts($url, $opts);
@@ -154,6 +157,15 @@
 
     function getJSONFromHTML($url, $opts = [], $scriptVariable = '', $prefix = 'var ', $forceLanguage = false, $verifiesChannelRedirection = false)
     {
+        if($forceLanguage) {
+            $HEADER = 'Accept-Language: en';
+            if(!doesPathExist($opts, 'http/header')) {
+                $opts['http']['header'] = [$HEADER];
+            } else {
+                array_push($opts['http']['header'], $HEADER);
+            }
+        }
+
         $html = getRemote($url, $opts);
         $jsonStr = getJSONStringFromHTML($html, $scriptVariable, $prefix);
         $json = json_decode($jsonStr, true);
@@ -163,22 +175,12 @@
             if(doesPathExist($json, $redirectedToChannelIdPath))
             {
                 $redirectedToChannelId = getValue($json, $redirectedToChannelIdPath);
-                $url = preg_replace('/[a-zA-Z0-9-_]{24}/', $redirectedToChannelId, $url);
+                $url = preg_replace('/[\w\-_]{24}/', $redirectedToChannelId, $url);
                 // Does a redirection of redirection for a channel exist?
                 return getJSONFromHTML($url, $opts, $scriptVariable, $prefix, $forceLanguage, $verifiesChannelRedirection);
             }
         }
         return $json;
-    }
-
-    function getJSONFromHTMLForcingLanguage($url, $verifiesChannelRedirection = false)
-    {
-        $opts = [
-            'http' => [
-                'header' => ['Accept-Language: en']
-            ]
-        ];
-        return getJSONFromHTML($url, $opts, verifiesChannelRedirection: $verifiesChannelRedirection);
     }
 
     function checkRegex($regex, $str)
@@ -188,48 +190,49 @@
 
     function isContinuationToken($continuationToken)
     {
-        return checkRegex('[A-Za-z0-9=\-_]+', $continuationToken);
+        return checkRegex('[\w=\-_]+', $continuationToken);
     }
 
     function isContinuationTokenAndVisitorData($continuationTokenAndVisitorData)
     {
-        return checkRegex('[A-Za-z0-9=_]+,[A-Za-z0-9=\-_]*', $continuationTokenAndVisitorData);
+        return checkRegex('[\w=_]+,[\w=\-_]*', $continuationTokenAndVisitorData);
     }
 
     function isPlaylistId($playlistId)
     {
-        return checkRegex('[a-zA-Z0-9-_]+', $playlistId);
+        return checkRegex('[\w\-_]+', $playlistId);
     }
 
-    // what's minimal length ?
+    // What's the minimal length ?
+    // Are there forbidden characters?
     function isCId($cId)
     {
-        return checkRegex('[a-zA-Z0-9]+', $cId);
+        return true;
     }
 
     function isUsername($username)
     {
-        return checkRegex('[a-zA-Z0-9]+', $username);
+        return checkRegex('\w+', $username);
     }
 
     function isChannelId($channelId)
     {
-        return checkRegex('UC[a-zA-Z0-9-_]{22}', $channelId);
+        return checkRegex('UC[\w\-_]{22}', $channelId);
     }
 
     function isVideoId($videoId)
     {
-        return checkRegex('[a-zA-Z0-9-_]{11}', $videoId);
+        return checkRegex('[\w\-_]{11}', $videoId);
     }
 
     function isHashtag($hashtag)
     {
-        return true; // checkRegex('[a-zA-Z0-9_]+', $hashtag); // 'é' is a valid hashtag for instance
+        return true; // checkRegex('[\w_]+', $hashtag); // 'é' is a valid hashtag for instance
     }
 
     function isSAPISIDHASH($SAPISIDHASH)
     {
-        return checkRegex('[1-9][0-9]{9}_[a-f0-9]{40}', $SAPISIDHASH);
+        return checkRegex('[1-9]\d{9}_[a-f\d]{40}', $SAPISIDHASH);
     }
 
     function isQuery($q)
@@ -239,7 +242,7 @@
 
     function isClipId($clipId)
     {
-        return checkRegex('Ug[a-zA-Z0-9-_]{34}', $clipId);
+        return checkRegex('Ug[\w\-_]{34}', $clipId);
     }
 
     function isEventType($eventType)
@@ -254,22 +257,22 @@
 
     function isYouTubeDataAPIV3Key($youtubeDataAPIV3Key)
     {
-        return checkRegex('AIzaSy[A-D][a-zA-Z0-9-_]{32}', $youtubeDataAPIV3Key);
+        return checkRegex('AIzaSy[A-D][\w\-_]{32}', $youtubeDataAPIV3Key);
     }
 
     function isHandle($handle)
     {
-        return checkRegex('@[a-zA-Z0-9-_.]{3,}', $handle);
+        return checkRegex('@[\w\-_.]{3,}', $handle);
     }
 
     function isPostId($postId)
     {
-        return (checkRegex('Ug[w-z][a-zA-Z0-9-_]{16}4AaABCQ', $postId) || checkRegex('Ugkx[a-zA-Z0-9-_]{32}', $postId));
+        return (checkRegex('Ug[w-z][\w\-_]{16}4AaABCQ', $postId) || checkRegex('Ugkx[\w\-_]{32}', $postId));
     }
 
     function isCommentId($commentId)
     {
-        return checkRegex('Ug[w-z][a-zA-Z0-9-_]{16}4AaABAg', $commentId);
+        return checkRegex('Ug[w-z][\w\-_]{16}4AaABAg(|.[\w\-]{22})', $commentId);
     }
 
     // Assume `$path !== ''`.
@@ -313,7 +316,7 @@
         $unitCount = str_replace('K', '*1_000', $unitCount);
         $unitCount = str_replace('M', '*1_000_000', $unitCount);
         $unitCount = str_replace('B', '*1_000_000_000', $unitCount);
-        if(checkRegex('[0-9_.*KMB]+', $unitCount)) {
+        if(checkRegex('[\d_.*KMB]+', $unitCount)) {
             $unitCount = eval("return round($unitCount);");
         }
         return intval($unitCount);
@@ -325,7 +328,7 @@
         $common = getValue($backstagePost, 'backstagePostRenderer', 'sharedPostRenderer');
 
         $id = $common['postId'];
-        $channelId = $common['publishedTimeText']['runs'][0]['navigationEndpoint']['browseEndpoint']['browseId'];
+        $channelId = $common['authorEndpoint']['browseEndpoint']['browseId'];
 
         // Except for `Image`, all other posts require text.
         $contentText = [];
@@ -374,6 +377,7 @@
             foreach ($pollRenderer['choices'] as $choice) {
                 $returnedChoice = $choice['text']['runs'][0];
                 $returnedChoice['image'] = $choice['image'];
+                $returnedChoice['voteRatio'] = $choice['voteRatioIfNotSelected'];
                 array_push($choices, $returnedChoice);
             }
             $totalVotesStr = $pollRenderer['totalVotes']['simpleText'];
@@ -397,7 +401,7 @@
             'channelId' => $channelId,
             'channelName' => $common['authorText']['runs'][0]['text'],
             'channelHandle' => substr($common['authorEndpoint']['browseEndpoint']['canonicalBaseUrl'], 1),
-            'channelThumbnails' => $common['authorThumbnail']['thumbnails'],
+            'channelThumbnails' => array_map(function($thumbnail) { $thumbnail['url'] = 'https:' . $thumbnail['url']; return $thumbnail; }, $common['authorThumbnail']['thumbnails']),
             'date' => $date,
             'contentText' => $contentText,
             'likes' => $likes,
@@ -560,7 +564,7 @@
     }
 
     function verifyTooManyIds($realIds, $field) {
-        if (count($realIds) > 50) {
+        if (count($realIds) > MULTIPLE_IDS_MAXIMUM) {
             dieWithJsonMessage("Too many $field");
         }
     }
@@ -575,6 +579,24 @@
         $realIds = explode(',', $realIdsString);
         verifyMultipleIds($realIds);
         return $realIds;
+    }
+
+    function includeOnceProto($proto) {
+        $COMMON_PATH = 'proto/php';
+        include_once "$COMMON_PATH/$proto.php";
+        include_once "$COMMON_PATH/GPBMetadata/$proto.php";
+    }
+
+    function includeOnceProtos($protos) {
+        require_once __DIR__ . '/vendor/autoload.php';
+        foreach($protos as $proto) {
+            includeOnceProto($proto);
+        }
+    }
+
+    // Source: https://www.php.net/manual/en/function.base64-encode.php#103849
+    function base64url_encode($data) {
+        return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
     }
 
 ?>

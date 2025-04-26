@@ -139,7 +139,6 @@ function getAPI($videoId, $commentId, $order, $continuationToken, $simulatedCont
             'isPinned' => false,
         ];
 
-        //$replies = $commentThread['replies'];
         $commentId = $properties['commentId'];
         $answerItem = [
             'kind' => 'youtube#comment' . ($isTopLevelComment ? 'Thread' : ''),
@@ -156,7 +155,8 @@ function getAPI($videoId, $commentId, $order, $continuationToken, $simulatedCont
         ];
         $answerItems[$properties['toolbarStateKey']] = $answerItem;
     }
-    foreach ($result['onResponseReceivedEndpoints'][1]['reloadContinuationItemsCommand']['continuationItems'] as $item) {
+    $continuationItems = $result['onResponseReceivedEndpoints'][1]['reloadContinuationItemsCommand']['continuationItems'];
+    foreach ($continuationItems as $item) {
         $commentThreadRenderer = $item['commentThreadRenderer'];
         $toolbarStateKey = $commentThreadRenderer['commentViewModel']['commentViewModel']['toolbarStateKey'];
         // How to avoid repeating path?
@@ -166,8 +166,12 @@ function getAPI($videoId, $commentId, $order, $continuationToken, $simulatedCont
         if (doesPathExist($commentThreadRenderer, 'commentViewModel/commentViewModel/pinnedText')) {
             $answerItems[$toolbarStateKey]['snippet']['topLevelComment']['snippet']['isPinned'] = true;
         }
+        if ($toolbarStateKey !== null) {
+            $answerItems[$toolbarStateKey]['snippet']['topLevelComment']['snippet']['nextPageToken'] = $commentThreadRenderer['replies']['commentRepliesRenderer']['contents'][0]['continuationItemRenderer']['continuationEndpoint']['continuationCommand']['token'];
+        }
     }
     $answerItems = array_values($answerItems);
+    $nextContinuationToken = $continuationItems[20]['continuationItemRenderer']['continuationEndpoint']['continuationCommand']['token'];
 
     $answer = [
         'kind' => 'youtube#comment' . ($isTopLevelComment ? 'Thread' : '') . 'ListResponse',
